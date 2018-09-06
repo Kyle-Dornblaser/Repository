@@ -1,20 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace database
 {
-    public class Repository
+    public class Repository: IRepository
 
     {
         private string FilePath { get; }
 
         public Repository(string filePath) {
             FilePath = filePath;
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
-                System.IO.File.Create(filePath).Close();
+                File.Create(filePath).Close();
             }
         }
 
@@ -26,8 +27,18 @@ namespace database
             return JsonConvert.DeserializeObject<T>(value);
         }
 
-        public void Add<T>(T model)
+        public void Create<T>(T model) where T: IModel
         {
+            List<T> allModels = List<T>();
+            if (allModels.Count == 0) 
+            {
+                model.Id = 0;
+            } else
+            {
+                var highestId = List<T>().OrderBy(x => x.Id).Last().Id;
+                model.Id = highestId + 1;
+            }
+
             var serializedModel = Serialize(model);
             using (StreamWriter writer = File.AppendText(FilePath))
             {
@@ -35,7 +46,43 @@ namespace database
             }
         }
 
-        public List<T> GetAll<T>() {
+        public void Update<T>(T model) where T: IModel
+        {
+            var deserializedList = List<T>();
+            var lines = new List<String>();
+            foreach(T modelInList in deserializedList)
+            {
+                if(modelInList.Id == model.Id)
+                {
+                    lines.Add(Serialize<T>(model));
+                }
+                else
+                {
+                    lines.Add(Serialize<T>(modelInList));
+                }
+            }
+
+            File.WriteAllLines(FilePath, lines);
+
+        }
+
+        public void Delete<T>(T model) where T: IModel
+        {
+            var deserializedList = List<T>();
+            var lines = new List<String>();
+            foreach(T modelInList in deserializedList)
+            {
+                if(modelInList.Id != model.Id)
+                {
+                    lines.Add(Serialize<T>(modelInList));
+                }
+            }
+
+            File.WriteAllLines(FilePath, lines);
+        }
+
+        public List<T> List<T>() where T: IModel
+        {
             using (StreamReader reader = new StreamReader(FilePath))
             {
                 var list = new List<T>();
@@ -44,6 +91,21 @@ namespace database
                     list.Add(deserializedModel);
                 }
                 return list;
+            }
+        }
+
+        public T Single<T>(int id) where T: IModel
+        {
+            using (StreamReader reader = new StreamReader(FilePath))
+            {
+                while(!reader.EndOfStream) {
+                    var deserializedModel = Deserialize<T>(reader.ReadLine());
+                    if (deserializedModel.Id == id)
+                    {
+                        return deserializedModel;
+                    }
+                }
+                return default(T);
             }
         }
     }
