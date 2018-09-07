@@ -8,6 +8,26 @@ namespace database
         static void Main(string[] args)
         {
             var filePath = "people.txt";
+            var ioRepository = new IORepository(filePath);
+            Console.WriteLine("Doing stuff on IO Repository");
+            DoRepositoryStuff(ioRepository);
+
+            var memoryRepository = new MemoryRepository(filePath);
+            Console.WriteLine("Doing stuff on IO Repository");
+            DoRepositoryStuff(memoryRepository);
+        }
+
+        static void PrintAll<T>(List<T> list)
+        {
+            Console.WriteLine("Printing all");
+            foreach (T x in list)
+            {
+                Console.WriteLine(x);
+            }
+        }
+
+        static void DoRepositoryStuff(IRepository repository)
+        {
             var people = new Person[] {
                 new Person {
                     Name = "Bob",
@@ -26,34 +46,27 @@ namespace database
                 }
             };
 
-            var peopleRepository = new Repository(filePath);
+            
             
             foreach(Person p in people) {
-                peopleRepository.Create(p);
+                repository.Create(p);
             }
 
-            var repositoryPeople = peopleRepository.List<Person>();
+            var repositoryPeople = repository.List<Person>();
             PrintAll<Person>(repositoryPeople);
+
+            var people25AndUp = repository.List<Person>(x=>x.Age >= 25);
+            Console.WriteLine("People 25 and up");
+            PrintAll<Person>(people25AndUp);
 
             people[1].Name = "Adam";
+            repository.Update(people[1]);
+            Console.WriteLine($"Single(2): {repository.Single<Person>(2)}");
+            Console.WriteLine($"Single(-1): {repository.Single<Person>(-1)}");
+            repository.Delete(people[2]);
 
-            peopleRepository.Update(people[1]);
-            Console.WriteLine($"Single(2): {peopleRepository.Single<Person>(2)}");
-            Console.WriteLine($"Single(-1): {peopleRepository.Single<Person>(-1)}");
-            peopleRepository.Delete(people[2]);
-
-            repositoryPeople = peopleRepository.List<Person>();
+            repositoryPeople = repository.List<Person>();
             PrintAll<Person>(repositoryPeople);
-            
-        }
-
-        static void PrintAll<T>(List<T> list)
-        {
-            Console.WriteLine("Printing all");
-            foreach (T x in list)
-            {
-                Console.WriteLine(x);
-            }
         }
     }
 }

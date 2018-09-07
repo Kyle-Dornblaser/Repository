@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 
 namespace database
 {
-    public class Repository: IRepository
+    public class IORepository: IRepository
 
     {
         private string FilePath { get; }
 
-        public Repository(string filePath) {
+        public IORepository(string filePath) {
             FilePath = filePath;
             if (!File.Exists(filePath))
             {
@@ -32,7 +32,7 @@ namespace database
             List<T> allModels = List<T>();
             if (allModels.Count == 0) 
             {
-                model.Id = 0;
+                model.Id = 1;
             } else
             {
                 var highestId = List<T>().OrderBy(x => x.Id).Last().Id;
@@ -81,32 +81,30 @@ namespace database
             File.WriteAllLines(FilePath, lines);
         }
 
-        public List<T> List<T>() where T: IModel
+        public List<T> List<T>(Func<T, bool> filter = null) where T: IModel
         {
             using (StreamReader reader = new StreamReader(FilePath))
             {
                 var list = new List<T>();
-                while(!reader.EndOfStream) {
+                while(!reader.EndOfStream) 
+                {
                     var deserializedModel = Deserialize<T>(reader.ReadLine());
                     list.Add(deserializedModel);
                 }
-                return list;
+                if (filter == null)
+                {
+                    return list;
+                }
+                else 
+                {
+                    return list.Where(filter).ToList();
+                }
             }
         }
 
-        public T Single<T>(int id) where T: IModel
+        public T Single<T>(Func<T, bool> filter) where T: IModel
         {
-            using (StreamReader reader = new StreamReader(FilePath))
-            {
-                while(!reader.EndOfStream) {
-                    var deserializedModel = Deserialize<T>(reader.ReadLine());
-                    if (deserializedModel.Id == id)
-                    {
-                        return deserializedModel;
-                    }
-                }
-                return default(T);
-            }
+            return List<T>(filter).FirstOrDefault();
         }
     }
 }
