@@ -1,4 +1,4 @@
-namespace database
+namespace Repository
 {
     public class Person: IModel
     {        

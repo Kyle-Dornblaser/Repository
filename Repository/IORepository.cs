@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace database
+namespace Repository
 {
-    public class IORepository: IRepository
+    public class IORepository<T>: IRepository<T> where T : IModel
 
     {
         private string FilePath { get; }
@@ -19,23 +19,23 @@ namespace database
             }
         }
 
-        private string Serialize<T>(T model) {
+        private string Serialize(T model) {
             return JsonConvert.SerializeObject(model);
         }
 
-        private T Deserialize<T>(string value) {
+        private T Deserialize(string value) {
             return JsonConvert.DeserializeObject<T>(value);
         }
 
-        public void Create<T>(T model) where T: IModel
+        public void Create(T model)
         {
-            List<T> allModels = List<T>();
+            List<T> allModels = List();
             if (allModels.Count == 0) 
             {
                 model.Id = 1;
             } else
             {
-                var highestId = List<T>().OrderBy(x => x.Id).Last().Id;
+                var highestId = List().OrderBy(x => x.Id).Last().Id;
                 model.Id = highestId + 1;
             }
 
@@ -46,19 +46,19 @@ namespace database
             }
         }
 
-        public void Update<T>(T model) where T: IModel
+        public void Update(T model)
         {
-            var deserializedList = List<T>();
+            var deserializedList = List();
             var lines = new List<String>();
             foreach(T modelInList in deserializedList)
             {
                 if(modelInList.Id == model.Id)
                 {
-                    lines.Add(Serialize<T>(model));
+                    lines.Add(Serialize(model));
                 }
                 else
                 {
-                    lines.Add(Serialize<T>(modelInList));
+                    lines.Add(Serialize(modelInList));
                 }
             }
 
@@ -66,29 +66,29 @@ namespace database
 
         }
 
-        public void Delete<T>(T model) where T: IModel
+        public void Delete(T model)
         {
-            var deserializedList = List<T>();
+            var deserializedList = List();
             var lines = new List<String>();
             foreach(T modelInList in deserializedList)
             {
                 if(modelInList.Id != model.Id)
                 {
-                    lines.Add(Serialize<T>(modelInList));
+                    lines.Add(Serialize(modelInList));
                 }
             }
 
             File.WriteAllLines(FilePath, lines);
         }
 
-        public List<T> List<T>(Func<T, bool> filter = null) where T: IModel
+        public List<T> List(Func<T, bool> filter = null)
         {
             using (StreamReader reader = new StreamReader(FilePath))
             {
                 var list = new List<T>();
                 while(!reader.EndOfStream) 
                 {
-                    var deserializedModel = Deserialize<T>(reader.ReadLine());
+                    var deserializedModel = Deserialize(reader.ReadLine());
                     list.Add(deserializedModel);
                 }
                 if (filter == null)
@@ -102,9 +102,9 @@ namespace database
             }
         }
 
-        public T Single<T>(Func<T, bool> filter) where T: IModel
+        public T Single(Func<T, bool> filter)
         {
-            return List<T>(filter).FirstOrDefault();
+            return List(filter).FirstOrDefault();
         }
     }
 }

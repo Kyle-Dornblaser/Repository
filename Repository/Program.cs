@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace database
+namespace Repository
 {
     class Program
     {
         static void Main(string[] args)
         {
             var filePath = "people.txt";
-            var ioRepository = new IORepository(filePath);
+            var ioRepository = new IORepository<Person>(filePath);
             Console.WriteLine("Doing stuff on IO Repository");
             DoRepositoryStuff(ioRepository);
 
-            var memoryRepository = new MemoryRepository(filePath);
+            var memoryRepository = new MemoryRepository<Person>();
             Console.WriteLine("Doing stuff on IO Repository");
             DoRepositoryStuff(memoryRepository);
+
         }
 
         static void PrintAll<T>(List<T> list)
@@ -26,8 +27,7 @@ namespace database
             }
         }
 
-        static void DoRepositoryStuff(IRepository repository)
-        {
+        static void DoRepositoryStuff(IRepository<Person> repository)        {
             var people = new Person[] {
                 new Person {
                     Name = "Bob",
@@ -52,20 +52,20 @@ namespace database
                 repository.Create(p);
             }
 
-            var repositoryPeople = repository.List<Person>();
+            var repositoryPeople = repository.List();
             PrintAll<Person>(repositoryPeople);
 
-            var people25AndUp = repository.List<Person>(x=>x.Age >= 25);
+            var people25AndUp = repository.List(x=>x.Age >= 25);
             Console.WriteLine("People 25 and up");
             PrintAll<Person>(people25AndUp);
 
             people[1].Name = "Adam";
             repository.Update(people[1]);
-            Console.WriteLine($"Single(2): {repository.Single<Person>(2)}");
-            Console.WriteLine($"Single(-1): {repository.Single<Person>(-1)}");
+            Console.WriteLine($"Single(2): {repository.Single(x=>x.Id == 2)}");
+            Console.WriteLine($"Single(-1): {repository.Single(x=> x.Id == -1)}");
             repository.Delete(people[2]);
 
-            repositoryPeople = repository.List<Person>();
+            repositoryPeople = repository.List();
             PrintAll<Person>(repositoryPeople);
         }
     }
