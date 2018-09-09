@@ -12,7 +12,6 @@ namespace Repository
          
         private List<T> _allModels;
 
-
         public MemoryRepository() 
         {
             _allModels = new List<T>();
