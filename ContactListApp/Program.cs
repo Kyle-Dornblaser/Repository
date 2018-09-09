@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Repository;
 
+[assembly: InternalsVisibleTo("ContactListApp.Test")]
 namespace ContactListApp
 {
     class Program
@@ -32,7 +34,7 @@ namespace ContactListApp
 
             if (repository != null)
             {
-                var contacts = GetContacts();
+                var contacts = GetContacts(5);
                 foreach(Contact c in contacts)
                 {
                     Console.WriteLine($"Adding {c.FullName} to repository");
@@ -62,9 +64,9 @@ namespace ContactListApp
             
         }
 
-        private static Contact[] GetContacts()
+        private static Contact[] GetContacts(int numContacts)
         {
-            var contacts = new Contact[5];
+            var contacts = new Contact[numContacts];
 
             for (int i = 0; i < contacts.Length; i++)
             {
